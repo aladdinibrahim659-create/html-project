@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacts </title>
+    <style>
+        button{
+            background-color: rgb(158, 208, 19);
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body style="background-image: url(PHDE9707\ copy.jpg); background-size:cover;">
+    <h2>Contact Information </h2>
+    <form action="http://127.0.0.1:3000/Contact.html?vscode-livepreview" 
+    method="post">
+        <label>full name:</label><br>
+        <input type="text" name="full name" placeholder="Enter your full name"><br><br>
+        <label>Email Adress:</label><br>
+        <input type="email" name="email" placeholder="Enter your email address"><br><br>
+    <label>Phone Number:</label><br>
+<input type="tel" name="phone" placeholder="Enter your phone number"><br><br>
+<label>subject:</label><br>
+<input type="text" name="subject" placeholder="Enter the subject"><br><br>
+<label>message:</label><br>
+<textarea rows="5" cols="40" name="message" placeholder="Enter your message"></textarea><br><br>
+<label>Gender:</label><br>
+<input type="radio" name="gender"> male
+<input type="radio" name="gender">female<br><br>
+<label>Country:</label><br>
+<select>
+    <option>Suadan </option>
+    <option>Uganda </option>
+    <option>Kenya </option>
+    <option>Egypt</option>
+    <opion>Ethiopa </opion>
+</select>
+<br><br>
+<label>favourite programming language:</label><br>
+<input type="checkbox" name="language"> HTML
+<input type="checkbox" name="language"> CSS
+<input type="checkbox" name="language"> JavaScript
+<input type="checkbox" name="language">python <br><br>
+<button type="submit">Submit</button>
+<button type="reset">Reset</button>
+    </form>
+    <hr>
+    <h2>Contact Information </h2>
+    <p>Email: aladdinibrahim659@gmail.com</p>
+    <p>Phone: +256 779638541</p>
+    <P>Address: Kampala, Uganda</P>
+    Please feel free to reach out to me via email or phone for any inquiries or collaborations.
+
+</body>
+
+</html>
