@@ -1,0 +1,317 @@
+/* ==========================================================
+   Keyboard Piano: style.css
+   Sections: 1 Variables  2 Page  3 Header & display
+             4 Controls   5 Piano  6 Active state  7 Extras
+   ========================================================== */
+
+/* ---------- 1. Variables (change the look here) ---------- */
+:root {
+  --key-width: clamp(36px, 9.6vw, 84px);   /* shrinks on small screens */
+  --key-height: clamp(170px, 40vw, 270px);
+  --gap: 6px;
+  --pad: 16px;                              /* space inside the piano body */
+  --black-width: calc(var(--key-width) * 0.62);
+
+  --ink: #15122b;       /* page background */
+  --ink-soft: #231d45;  /* piano body */
+  --ivory: #fbf8ee;     /* key colour */
+  --text: #f2eefc;
+  --muted: #bbc9a2;
+}
+
+/* ---------- 2. Page ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 12px;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 20% 0%, #3a2a74 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 100%, #1f4a6b 0%, transparent 50%),
+    var(--ink);
+}
+
+.stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ---------- 3. Header & display ---------- */
+.intro {
+  text-align: center;
+}
+
+h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.subtitle {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.9;
+  max-width: 34rem;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 1px 6px;
+  font: inherit;
+  font-size: 0.85em;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+  border-bottom-width: 3px;
+}
+
+.display {
+  text-align: center;
+  min-height: 118px;
+}
+
+.last-note {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.6rem, 9vw, 4.6rem);
+  font-style: italic;
+  line-height: 1.1;
+  color: hsl(var(--now-hue, 45) 95% 70%);
+  transition: color 0.15s;
+}
+
+.status {
+  margin-top: 6px;
+  color: var(--muted);
+  min-height: 1.4em;
+}
+
+/* ---------- 4. Controls ---------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+select {
+  padding: 7px 10px;
+  font: inherit;
+  color: var(--text);
+  background: var(--ink-soft);
+  border: 1px solid #4b4280;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+select:focus-visible,
+.key:focus-visible {
+  outline: 3px solid gold;
+  outline-offset: 2px;
+}
+
+/* ---------- 5. The piano ---------- */
+.piano {
+  position: relative;              /* black keys are placed inside this box */
+  display: flex;                   /* white keys sit side by side */
+  justify-content: center;
+  gap: var(--gap);
+  width: max-content;
+  max-width: 100%;
+  padding: var(--pad);
+  background: linear-gradient(#2e2658, var(--ink-soft));
+  border-radius: 18px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
+}
+
+.key {
+  width: var(--key-width);
+  height: var(--key-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 2px;
+  padding-bottom: 14px;
+  text-align: center;
+  color: #2a2340;
+  background: linear-gradient(#ffffff, var(--ivory));
+  border: 1px solid #999;
+  border-radius: 0 0 10px 10px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.08s, background 0.08s, box-shadow 0.12s;
+}
+
+.note-name {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-weight: 700;
+}
+
+.solfege {
+  font-size: clamp(0.65rem, 2vw, 0.9rem);
+  opacity: 0.75;
+}
+
+.key kbd {
+  margin-top: 8px;
+  color: #4b4280;
+}
+
+/* Black keys float above the gaps between two white keys. */
+.black-key {
+  position: absolute;
+  z-index: 2;
+  top: var(--pad);
+  /* start of piano + i white keys + one key + half a gap - half my width */
+  left: calc(
+    var(--pad)
+    + var(--i) * (var(--key-width) + var(--gap))
+    + var(--key-width) + var(--gap) / 2
+    - var(--black-width) / 2
+  );
+  width: var(--black-width);
+  height: calc(var(--key-height) * 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 10px;
+  color: #d9d3f2;
+  font-size: clamp(0.55rem, 1.7vw, 0.8rem);
+  background: linear-gradient(#3a3a3a, #000);
+  border-radius: 0 0 7px 7px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.08s, background 0.08s, box-shadow 0.12s;
+}
+
+.black-key kbd {
+  font-size: 0.9em;
+  padding: 0 4px;
+}
+
+/* ---------- 6. The active state (the light-up) ---------- */
+.key.active {
+  background: linear-gradient(hsl(var(--hue) 95% 78%), hsl(var(--hue) 90% 58%));
+  transform: translateY(4px);                       /* pressed down */
+  box-shadow:
+    0 0 26px hsl(var(--hue) 100% 60% / 0.85),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.15);
+}
+
+.black-key.active {
+  background: linear-gradient(hsl(var(--hue) 90% 62%), hsl(var(--hue) 85% 40%));
+  transform: translateY(3px);
+  box-shadow: 0 0 22px hsl(var(--hue) 100% 60% / 0.85);
+  color: #fff;
+}
+
+/* ---------- 7. Extras ---------- */
+
+/* Song mode: the next key to press pulses */
+.key.hint,
+.black-key.hint {
+  outline: 3px dashed gold;
+  outline-offset: -4px;
+  animation: pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { filter: brightness(1); }
+  to   { filter: brightness(1.18); }
+}
+
+.song-sheet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: 34rem;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.song-sheet[hidden] {
+  display: none;
+}
+
+.chip {
+  min-width: 2em;
+  padding: 3px 8px;
+  text-align: center;
+  font-weight: 700;
+  border-radius: 6px;
+  background: #3a3270;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.chip.done {
+  opacity: 0.35;
+}
+
+.chip.current {
+  color: #2a2340;
+  background: gold;
+}
+
+.song-message {
+  width: 100%;
+  text-align: center;
+  color: gold;
+  font-weight: 700;
+}
+
+/* Floating music notes that rise from a pressed key */
+.float-note {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+  font-size: 1.6rem;
+  transform: translate(-50%, 0);
+  animation: rise 1s ease-out forwards;
+}
+
+@keyframes rise {
+  to {
+    transform: translate(-50%, -90px);
+    opacity: 0;
+  }
+}
+
+.footnote {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key, .black-key { transition: none; }
+  .key.hint, .black-key.hint { animation: none; }
+  .float-note { display: none; }
+}

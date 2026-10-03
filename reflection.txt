@@ -1,0 +1,31 @@
+Keyboard Piano: Reflection
+Name: Aladdin Adam
+
+1. What is the difference between keydown and keyup? Why did we need both?
+
+keydown fires at the moment I push a key down. keyup fires at the moment I
+let it go. I needed both because the piano has two jobs: when the key goes
+down it must light up and play the note, and when the key comes up it must
+turn the light off.
+
+
+2. What information does the event object e give you? Name two properties you used.
+
+I used two properties:
+ - e.key: the letter that was pressed (for example "d"). I used
+   e.key.toLowerCase() so "A" with Caps Lock and "a" both work.
+ - e.repeat: true when the key is being held down and keydown keeps firing.
+   
+
+3. Why did we listen on document instead of on each piano key for the keyboard?
+
+Keyboard events go to the element that has focus, and the piano keys are plain
+<div> boxes that never get focus, so a listener on a key would never hear a
+key press. 
+
+
+4. Name one other place on a real website where an event listener is used.
+
+The Like button on a social media post. The page listens for a click on the
+button, and when it happens it runs a function that turns the heart red and
+adds one to the counter.
