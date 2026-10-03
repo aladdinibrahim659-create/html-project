@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Love Score Calculator</title>
+
+  <!-- Optional font. If you are offline, the page falls back to a system font. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --wine: #2a0a24;
+      --coral: #ff4d7d;
+      --blush: #ffe8ef;
+      --gold: #ffc857;
+    }
+
+    * { box-sizing: border-box; }
+
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: "Fredoka", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--blush);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255, 77, 125, 0.28), transparent 45%),
+        radial-gradient(circle at 85% 90%, rgba(255, 200, 87, 0.16), transparent 40%),
+        var(--wine);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      padding: 36px 28px 28px;
+      text-align: center;
+      border-radius: 32px;
+      background: rgba(255, 232, 239, 0.07);
+      border: 1px solid rgba(255, 232, 239, 0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      font-size: 1.05rem;
+      color: rgba(255, 232, 239, 0.8);
+    }
+
+    /* ---------- The heart ---------- */
+    .heart-wrap {
+      position: relative;
+      width: 250px;
+      height: 225px;
+      margin: 0 auto 18px;
+    }
+
+    .heart-wrap svg { width: 100%; height: 100%; overflow: visible; }
+
+    .heart-wrap.idle svg     { animation: beat 1.6s ease-in-out infinite; }
+    .heart-wrap.thinking svg { animation: beat 0.7s ease-in-out infinite; }
+
+    @keyframes beat {
+      0%, 100% { transform: scale(1); }
+      15%      { transform: scale(1.06); }
+      30%      { transform: scale(1); }
+      45%      { transform: scale(1.04); }
+    }
+
+    .wave { animation: drift 2.2s linear infinite; }
+
+    @keyframes drift {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-100px); }
+    }
+
+    .score {
+      position: absolute;
+      inset: 0 0 auto 0;
+      top: 34%;
+      font-size: 3.4rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(42, 10, 36, 0.55);
+      pointer-events: none;
+    }
+
+    /* ---------- Form ---------- */
+    .field { margin-bottom: 14px; text-align: left; }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 18px;
+      font: inherit;
+      font-size: 1.1rem;
+      color: var(--wine);
+      background: var(--blush);
+      border: 2px solid transparent;
+      border-radius: 16px;
+    }
+
+    input[type="text"]::placeholder { color: rgba(74, 20, 69, 0.5); }
+    input[type="text"][aria-invalid="true"] { border-color: var(--gold); }
+    input[type="text"]:disabled { opacity: 0.65; }
+
+    .error {
+      min-height: 1.4em;
+      margin: 0 0 4px;
+      text-align: left;
+      font-size: 0.95rem;
+      color: var(--gold);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px 18px;
+      font: inherit;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--coral);
+      border: 0;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover:not(:disabled) { background: #ff6a93; transform: translateY(-2px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.6; cursor: wait; }
+
+    .secondary {
+      background: transparent;
+      border: 2px solid rgba(255, 232, 239, 0.4);
+    }
+
+    .secondary:hover:not(:disabled) { background: rgba(255, 232, 239, 0.12); }
+
+    input:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 3px;
+    }
+
+    /* ---------- Analyzing status ---------- */
+    .status {
+      min-height: 1.5em;
+      margin: 16px 0 0;
+      font-weight: 500;
+      color: var(--gold);
+    }
+
+    /* ---------- Result ---------- */
+    .result { margin-top: 18px; }
+
+    .result-title {
+      margin: 0 0 2px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .result-tag {
+      margin: 0 0 10px;
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .result-reading {
+      margin: 0;
+      color: rgba(255, 232, 239, 0.88);
+      line-height: 1.5;
+    }
+
+    .breakdown {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 112px 1fr 46px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: rgba(255, 232, 239, 0.15);
+    }
+
+    .fill {
+      height: 100%;
+      width: 0;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #ff8fab, #ff2e63);
+      transition: width 1s ease-out;
+    }
+
+    .value { text-align: right; font-weight: 600; }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .copy-status {
+      min-height: 1.3em;
+      margin: 8px 0 0;
+      font-size: 0.9rem;
+      color: var(--gold);
+    }
+
+    /* ---------- History ---------- */
+    .history {
+      margin-top: 18px;
+      padding-top: 14px;
+      text-align: left;
+      border-top: 1px solid rgba(255, 232, 239, 0.18);
+    }
+
+    .history h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .history ul { margin: 0; padding: 0; list-style: none; }
+
+    .history li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 0;
+      color: rgba(255, 232, 239, 0.85);
+    }
+
+    .history .name { overflow-wrap: anywhere; }
+    .history .pct  { font-weight: 600; }
+
+    .note {
+      margin: 22px 0 0;
+      font-size: 0.85rem;
+      color: rgba(255, 232, 239, 0.6);
+    }
+
+    /* ---------- Floating hearts for high scores ---------- */
+    .confetti {
+      position: fixed;
+      bottom: -40px;
+      z-index: 10;
+      pointer-events: none;
+      animation: rise linear forwards;
+    }
+
+    @keyframes rise {
+      to { transform: translateY(-110vh) rotate(25deg); opacity: 0; }
+    }
+
+    @media (max-width: 380px) {
+      .row { grid-template-columns: 96px 1fr 44px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .heart-wrap.idle svg, .heart-wrap.thinking svg, .wave { animation: none; }
+      .confetti { display: none; }
+      button, .fill { transition: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>Love Score Calculator 2026</h1>
+    <p class="subtitle">Enter two names and see what the heart says.</p>
+
+    <div class="heart-wrap idle" id="heartWrap">
+      <svg viewBox="0 0 100 90" role="img" aria-label="Heart that fills up with your love score">
+        <defs>
+          <clipPath id="heartClip">
+            <path d="M50 85 C20 62 5 45 5 28 C5 14 16 5 29 5 C38 5 46 10 50 17 C54 10 62 5 71 5 C84 5 95 14 95 28 C95 45 80 62 50 85 Z"/>
+          </clipPath>
+          <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ff8fab"/>
+            <stop offset="1" stop-color="#ff2e63"/>
+          </linearGradient>
+        </defs>
+
+        <!-- empty heart -->
+        <path d="M50 85 C20 62 5 45 5 28 C5 14 16 5 29 5 C38 5 46 10 50 17 C54 10 62 5 71 5 C84 5 95 14 95 28 C95 45 80 62 50 85 Z"
+              fill="rgba(255,255,255,0.08)"/>
+
+        <!-- liquid that rises with the score -->
+        <g clip-path="url(#heartClip)">
+          <g id="liquidLevel" transform="translate(0 90)">
+            <g class="wave">
+              <path d="M-100 0 Q-75 -5 -50 0 T0 0 T50 0 T100 0 T150 0 T200 0 V100 H-100 Z" fill="url(#liquid)"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- outline -->
+        <path d="M50 85 C20 62 5 45 5 28 C5 14 16 5 29 5 C38 5 46 10 50 17 C54 10 62 5 71 5 C84 5 95 14 95 28 C95 45 80 62 50 85 Z"
+              fill="none" stroke="#ffe8ef" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <div class="score" id="score" aria-hidden="true">?</div>
+    </div>
+
+    <form id="loveForm" novalidate>
+      <div class="field">
+        <label for="yourName">Your name</label>
+        <input type="text" id="yourName" maxlength="30" placeholder="For example: Ala" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="loverName">Your lover's name</label>
+        <input type="text" id="loverName" maxlength="30" placeholder="For example: Amina" autocomplete="off">
+      </div>
+
+      <p class="error" id="error" role="alert"></p>
+      <button type="submit" id="calcBtn">Calculate love score</button>
+    </form>
+
+    <p class="status" id="status" aria-live="polite"></p>
+
+    <section class="result" id="result" aria-live="polite" hidden>
+      <p class="result-title" id="resultTitle"></p>
+      <p class="result-tag" id="resultTag"></p>
+      <p class="result-reading" id="resultReading"></p>
+
+      <div class="breakdown" id="breakdown"></div>
+
+      <div class="actions">
+        <button type="button" class="secondary" id="shareBtn">Copy result</button>
+        <button type="button" class="secondary" id="anotherBtn">Try another name</button>
+      </div>
+      <p class="copy-status" id="copyStatus" aria-live="polite"></p>
+    </section>
+
+    <section class="history" id="history" hidden>
+      <h2>Your tries</h2>
+      <ul id="historyList"></ul>
+    </section>
+
+    <p class="note">Just for fun. This is not a real prediction.</p>
+  </main>
+
+  <script>
+    const form        = document.getElementById("loveForm");
+    const yourInput   = document.getElementById("yourName");
+    const loverInput  = document.getElementById("loverName");
+    const errorBox    = document.getElementById("error");
+    const calcBtn     = document.getElementById("calcBtn");
+    const heartWrap   = document.getElementById("heartWrap");
+    const scoreText   = document.getElementById("score");
+    const liquid      = document.getElementById("liquidLevel");
+    const statusBox   = document.getElementById("status");
+    const resultBox   = document.getElementById("result");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultTag   = document.getElementById("resultTag");
+    const resultRead  = document.getElementById("resultReading");
+    const breakdownEl = document.getElementById("breakdown");
+    const shareBtn    = document.getElementById("shareBtn");
+    const anotherBtn  = document.getElementById("anotherBtn");
+    const copyStatus  = document.getElementById("copyStatus");
+    const historyBox  = document.getElementById("history");
+    const historyList = document.getElementById("historyList");
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, reduceMotion ? 0 : ms));
+
+    const CATEGORIES = [
+      { key: "trust",    label: "Trust",         tip: "Your strongest link is trust, so be open with each other this week." },
+      { key: "romance",  label: "Romance",       tip: "Your strongest link is romance, so plan something special together." },
+      { key: "fun",      label: "Fun together",  tip: "Your strongest link is fun, so keep making time to laugh together." },
+      { key: "longterm", label: "Long-term",     tip: "Your strongest link is the long term, so talk about what you both want ahead." }
+    ];
+
+    const ANALYZING = [
+      "Comparing the names...",
+      "Reading the stars...",
+      "Measuring the chemistry..."
+    ];
+
+    let lastResult = null;
+    let history = [];
+
+    /* ---------- Score logic ---------- */
+
+    // Turns text into a number. The same text always gives the same number.
+    function fnv(text) {
+      let h = 0x811c9dc5;
+      for (let i = 0; i < text.length; i++) {
+        h ^= text.charCodeAt(i);
+        h = Math.imul(h, 0x01000193) >>> 0;
+      }
+      return h >>> 0;
+    }
+
+    // "  Amina  " and "amina" count as the same name.
+    function normalize(text) {
+      return text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function tidy(text) {
+      return text.trim().replace(/\s+/g, " ");
+    }
+
+    function calculate(nameA, nameB) {
+      // Sorting means "Daniel + Amina" and "Amina + Daniel" give the same score.
+      const pair = [normalize(nameA), normalize(nameB)].sort().join("|");
+
+      const score = 30 + (fnv(pair) % 71);                 // 30 to 100
+
+      const parts = CATEGORIES.map((cat) => {
+        const offset = (fnv(pair + "#" + cat.key) % 21) - 10;   // -10 to +10
+        const value = Math.max(15, Math.min(100, score + offset));
+        return { key: cat.key, label: cat.label, tip: cat.tip, value: value };
+      });
+
+      let best = parts[0];
+      parts.forEach((p) => { if (p.value > best.value) best = p; });
+
+      return { score: score, parts: parts, best: best };
+    }
+
+    function tagFor(score) {
+      if (score >= 90) return "Soulmate level";
+      if (score >= 75) return "Very strong match";
+      if (score >= 50) return "Good spark";
+      return "A slow burn";
+    }
+
+    function readingFor(nameA, nameB, result) {
+      let intro;
+      if (result.score >= 90)      intro = nameA + " and " + nameB + " make a rare pair.";
+      else if (result.score >= 75) intro = nameA + " and " + nameB + " bring out the best in each other.";
+      else if (result.score >= 50) intro = nameA + " and " + nameB + " have a real spark.";
+      else                         intro = nameA + " and " + nameB + " are a slow burn, and those can last.";
+      return intro + " " + result.best.tip;
+    }
+
+    /* ---------- Heart animation ---------- */
+
+    // The heart's inside runs from y = 85 (bottom tip) to y = 5 (top).
+    function setLevel(percent) {
+      const y = 85 - (percent / 100) * 80;
+      liquid.setAttribute("transform", "translate(0 " + y + ")");
+    }
+
+    function animateTo(score) {
+      return new Promise((resolve) => {
+        if (reduceMotion) {
+          setLevel(score);
+          scoreText.textContent = score + "%";
+          resolve();
+          return;
+        }
+
+        const duration = 2200;
+        const start = performance.now();
+
+        function frame(now) {
+          const t = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - t, 3);          // slows down near the end
+          setLevel(eased * score);
+          scoreText.textContent = Math.round(eased * score) + "%";
+
+          if (t < 1) requestAnimationFrame(frame);
+          else resolve();
+        }
+        requestAnimationFrame(frame);
+      });
+    }
+
+    function launchHearts() {
+      if (reduceMotion) return;
+      const symbols = ["♥", "❤", "💖"];
+      for (let i = 0; i < 26; i++) {
+        const heart = document.createElement("span");
+        heart.className = "confetti";
+        heart.textContent = symbols[i % symbols.length];
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.fontSize = 18 + Math.random() * 26 + "px";
+        heart.style.color = i % 3 === 0 ? "#ffc857" : "#ff4d7d";
+        heart.style.animationDuration = 2.4 + Math.random() * 2 + "s";
+        heart.style.animationDelay = Math.random() * 0.8 + "s";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 5500);
+      }
+    }
+
+    /* ---------- Showing results ---------- */
+
+    function renderBreakdown(parts) {
+      breakdownEl.textContent = "";
+      const fills = [];
+
+      parts.forEach((p) => {
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const label = document.createElement("span");
+        label.textContent = p.label;
+
+        const track = document.createElement("div");
+        track.className = "track";
+        const fill = document.createElement("div");
+        fill.className = "fill";
+        track.appendChild(fill);
+
+        const value = document.createElement("span");
+        value.className = "value";
+        value.textContent = p.value + "%";
+
+        row.append(label, track, value);
+        breakdownEl.appendChild(row);
+        fills.push({ el: fill, value: p.value });
+      });
+
+      void breakdownEl.offsetWidth;                       // lets the bars start from 0
+      fills.forEach((f) => { f.el.style.width = f.value + "%"; });
+    }
+
+    function renderHistory() {
+      historyList.textContent = "";
+      history.forEach((item) => {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = item.label;
+        const pct = document.createElement("span");
+        pct.className = "pct";
+        pct.textContent = item.score + "%";
+        li.append(name, pct);
+        historyList.appendChild(li);
+      });
+      historyBox.hidden = history.length < 2;
+    }
+
+    function showResult(nameA, nameB, result) {
+      resultTitle.textContent = nameA + " + " + nameB + " = " + result.score + "%";
+      resultTag.textContent = tagFor(result.score);
+      resultRead.textContent = readingFor(nameA, nameB, result);
+      renderBreakdown(result.parts);
+      copyStatus.textContent = "";
+      resultBox.hidden = false;
+
+      lastResult = { text: nameA + " + " + nameB + " = " + result.score + "% love score. What is yours?" };
+
+      history.unshift({ label: nameA + " + " + nameB, score: result.score });
+      history = history.slice(0, 5);
+      renderHistory();
+    }
+
+    function setBusy(isBusy) {
+      calcBtn.disabled = isBusy;
+      yourInput.disabled = isBusy;
+      loverInput.disabled = isBusy;
+    }
+
+    /* ---------- Events ---------- */
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const nameA = tidy(yourInput.value);
+      const nameB = tidy(loverInput.value);
+
+      yourInput.removeAttribute("aria-invalid");
+      loverInput.removeAttribute("aria-invalid");
+
+      if (nameA === "") {
+        errorBox.textContent = "Please enter your name first.";
+        yourInput.setAttribute("aria-invalid", "true");
+        yourInput.focus();
+        return;
+      }
+      if (nameB === "") {
+        errorBox.textContent = "Please enter your lover's name.";
+        loverInput.setAttribute("aria-invalid", "true");
+        loverInput.focus();
+        return;
+      }
+
+      errorBox.textContent = "";
+      setBusy(true);
+      resultBox.hidden = true;
+      heartWrap.classList.remove("idle");
+      heartWrap.classList.add("thinking");
+      setLevel(0);
+      scoreText.textContent = "...";
+
+      const result = calculate(nameA, nameB);
+
+      for (const message of ANALYZING) {
+        statusBox.textContent = message;
+        await sleep(900);
+      }
+      statusBox.textContent = "";
+
+      heartWrap.classList.remove("thinking");
+      await animateTo(result.score);
+
+      showResult(nameA, nameB, result);
+      if (result.score >= 75) launchHearts();
+      setBusy(false);
+    });
+
+    [yourInput, loverInput].forEach((input) => {
+      input.addEventListener("input", function () {
+        if (input.value.trim() !== "") {
+          input.removeAttribute("aria-invalid");
+          errorBox.textContent = "";
+        }
+      });
+    });
+
+    anotherBtn.addEventListener("click", function () {
+      loverInput.value = "";
+      resultBox.hidden = true;
+      statusBox.textContent = "";
+      setLevel(0);
+      scoreText.textContent = "?";
+      heartWrap.classList.add("idle");
+      loverInput.focus();
+    });
+
+    shareBtn.addEventListener("click", async function () {
+      if (!lastResult) return;
+
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(lastResult.text);
+        copied = true;
+      } catch (err) {
+        // Fallback for browsers that block the clipboard on local files.
+        const temp = document.createElement("textarea");
+        temp.value = lastResult.text;
+        document.body.appendChild(temp);
+        temp.select();
+        try { copied = document.execCommand("copy"); } catch (e) { copied = false; }
+        temp.remove();
+      }
+
+      copyStatus.textContent = copied ? "Copied. Paste it to a friend!" : "Could not copy. Please select the result and copy it.";
+      setTimeout(() => { copyStatus.textContent = ""; }, 3000);
+    });
+  </script>
+</body>
+</html>
